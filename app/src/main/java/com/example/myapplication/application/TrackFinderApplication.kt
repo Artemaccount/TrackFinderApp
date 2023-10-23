@@ -2,8 +2,8 @@ package com.example.myapplication.application
 
 import android.app.Application
 import com.example.myapplication.di.AppComponent
-import com.example.myapplication.di.AppModule
 import com.example.myapplication.di.DaggerAppComponent
+import com.example.myapplication.di.DbModule
 
 class TrackFinderApplication : Application() {
     lateinit var appComponent: AppComponent
@@ -12,7 +12,7 @@ class TrackFinderApplication : Application() {
         super.onCreate()
         appComponent = DaggerAppComponent
             .builder()
-            .appModule(AppModule(context = this))
+            .dbModule(DbModule(context = this))
             .build()
     }
 }

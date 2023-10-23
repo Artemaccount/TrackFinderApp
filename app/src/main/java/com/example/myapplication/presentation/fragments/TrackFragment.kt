@@ -1,49 +1,41 @@
 package com.example.myapplication.presentation.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.coroutineScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
-import com.example.myapplication.presentation.adapter.TracksAdapter
 import com.example.myapplication.application.TrackFinderApplication
+import com.example.myapplication.data.api.State
 import com.example.myapplication.databinding.ActivityMainBinding
-import com.example.myapplication.di.TrackViewModelFactory
-import com.example.myapplication.utils.KeyboardUtils.hideKeyboard
+import com.example.myapplication.di.AppComponent
+import com.example.myapplication.presentation.adapter.TracksAdapter
 import com.example.myapplication.presentation.viewmodel.TrackViewModel
-import kotlinx.coroutines.flow.collect
+import com.example.myapplication.utils.KeyboardUtils.hideKeyboard
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class TrackFragment : Fragment() {
     private lateinit var binding: ActivityMainBinding
 
-    @Inject
-    lateinit var vmFactory: TrackViewModelFactory
+    private val adapter by lazy { TracksAdapter() }
 
-    private lateinit var trackViewModel: TrackViewModel
-
-    private var firstTimeAction = true
+    private val trackViewModel: TrackViewModel by viewModels {
+        getAppComponent().viewModelsFactory()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
-        (activity?.applicationContext as TrackFinderApplication).appComponent.inject(this)
-        trackViewModel = ViewModelProvider(this, vmFactory).get(TrackViewModel::class.java)
+        this.getAppComponent().inject(this)
 
         binding = ActivityMainBinding.inflate(inflater, container, false)
 
-        val adapter = TracksAdapter()
         binding.trackRecyclerView.adapter = adapter
 
         binding.searchButton.setOnClickListener {
@@ -51,36 +43,46 @@ class TrackFragment : Fragment() {
             if (searchText.isBlank()) {
                 binding.searchTrackEditText.error = getString(R.string.enter_value_error)
             } else {
-                trackViewModel.getTracksNew(searchText)
+                trackViewModel.getTracks(searchText)
             }
         }
 
-        viewLifecycleOwner.lifecycle.coroutineScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                trackViewModel.data.onEach { results ->
-                    val trackList = results.results
-                    if (trackList.isNotEmpty()) {
-                        showNoValueFound(false)
-                        Log.d("MyTagBro", "trackList is not empty: $trackList")
-                        adapter.submitList(trackList)
-                        activity?.currentFocus?.hideKeyboard()
-                    } else {
-                        if (firstTimeAction) firstTimeAction = false else showNoValueFound(true)
-                        Log.d("MyTagBro", "trackList is empty")
+        trackViewModel.state.onEach {
+            activity?.currentFocus?.hideKeyboard()
+            with(binding) {
+                when (it.state) {
+                    State.Loading -> {
+                        noValueFoundTextView.visibility = View.GONE
+                        pBar.visibility = View.VISIBLE
+                        trackRecyclerView.visibility = View.GONE
                     }
-                }.collect()
+
+                    State.Success -> {
+                        noValueFoundTextView.visibility = View.GONE
+                        pBar.visibility = View.GONE
+                        trackRecyclerView.visibility = View.VISIBLE
+                    }
+
+                    State.Error -> {
+                        pBar.visibility = View.GONE
+                        trackRecyclerView.visibility = View.GONE
+                        noValueFoundTextView.visibility = View.VISIBLE
+                    }
+                }
             }
-        }
+        }.launchIn(lifecycleScope)
+
+        trackViewModel.data.onEach { results ->
+            val trackList = results.results
+            if (trackList.isNotEmpty()) {
+                adapter.submitList(trackList)
+            }
+        }.launchIn(lifecycleScope)
+
         return binding.root
     }
 
-    private fun showNoValueFound(value: Boolean) {
-        if (value) {
-            binding.noValueFoundTextView.visibility = View.VISIBLE
-            binding.trackRecyclerView.visibility = View.GONE
-        } else {
-            binding.noValueFoundTextView.visibility = View.GONE
-            binding.trackRecyclerView.visibility = View.VISIBLE
-        }
-    }
+    private fun Fragment.getAppComponent(): AppComponent =
+        (activity?.applicationContext as TrackFinderApplication).appComponent
+
 }

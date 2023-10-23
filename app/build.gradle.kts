@@ -1,18 +1,17 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    //id("org.jetbrains.kotlin.kapt")
     id("kotlin-kapt")
 }
 
 android {
     namespace = "com.example.myapplication"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.myapplication"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -54,16 +53,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
-    val room_version = "2.5.2"
+    val room_version = "2.6.0"
 
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
 
-    // To use Kotlin annotation processing tool (kapt)
+//    // To use Kotlin annotation processing tool (kapt)
     kapt("androidx.room:room-compiler:$room_version")
-
-    kapt("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
 
 // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-livedata-ktx
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
@@ -73,7 +69,6 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.github.bumptech.glide/glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
-
 
     implementation("com.google.dagger:dagger:2.48.1")
     kapt("com.google.dagger:dagger-compiler:2.48.1")

@@ -23,31 +23,30 @@ class TracksAdapter :
     override fun onBindViewHolder(viewHolder: TrackViewHolder, position: Int) {
         val track = getItem(position)
         viewHolder.bind(track)
-        viewHolder.setPic(track)
     }
 }
 
 class TrackViewHolder(private val binding: RecyclerViewItemBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(track: Track) {
-        binding.trackName.text = track.trackName
-        binding.albumAuthor.text = track.artistName
-    }
-
-
-    fun setPic(track: Track) {
-        val options: RequestOptions = RequestOptions()
+    private val options by lazy {
+        RequestOptions()
             .centerInside()
             .placeholder(R.drawable.no_track_48dp)
             .error(R.drawable.no_track_48dp)
+    }
+
+    fun bind(track: Track) {
+        binding.trackName.text = track.trackName
+        binding.albumAuthor.text = track.artistName
+        setPic(track.artworkUrl60)
+    }
+    private fun setPic(url: String) {
         Glide.with(binding.root)
-            .load(track.artworkUrl60)
+            .load(url)
             .apply(options)
             .into(binding.albumImage)
     }
-
-
 }
 
 class TrackDiffCallback : DiffUtil.ItemCallback<Track>() {

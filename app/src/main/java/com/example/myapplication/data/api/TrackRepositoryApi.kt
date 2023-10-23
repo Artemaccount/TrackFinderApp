@@ -1,76 +1,59 @@
 package com.example.myapplication.data.api
 
-import com.example.myapplication.data.db.SearchEntity
+import com.example.myapplication.data.exceptions.NoValueFoundException
 import com.example.myapplication.data.db.TrackDao
-import kotlinx.coroutines.Dispatchers
+import com.example.myapplication.data.mapper.MapperObject.toSearchEntity
+import com.example.myapplication.data.mapper.MapperObject.toTrack
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class TrackRepositoryApi(
+class TrackRepositoryApi @Inject constructor(
     private val trackDao: TrackDao,
     private val apiService: ItunesApi
-) :
-    TrackRepository {
-    private var results = Results(mutableListOf())
-    private var _data = MutableStateFlow(results)
-    val data: StateFlow<Results> = _data.asStateFlow()
+) : TrackRepository {
+    private val _state = MutableStateFlow(ApiState())
+    override val state: StateFlow<ApiState>
+        get() = _state.asStateFlow()
+
+    private var _data = MutableStateFlow(Results(listOf()))
+    override val data: StateFlow<Results>
+        get() = _data.asStateFlow()
 
     override suspend fun getTracks(value: String) {
-        updateDataWithApi(value)
-        updateDataWithSql(value)
+        try {
+            updateDataWithApi(value)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            updateDataWithSql(value)
+        }
     }
 
-
     private suspend fun updateDataWithApi(value: String) {
-        flow<Unit> {
-            var resultsFromApi = results
-            try {
-                resultsFromApi = apiService.getTrack(value)
-                insertTracks(value, resultsFromApi.results)
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
+        _state.value = ApiState(State.Loading)
+        val resultsFromApi = apiService.getTrack(value)
+        if (resultsFromApi.results.isEmpty()) {
+            throw NoValueFoundException("no data found by api")
+        } else {
+            _state.value = ApiState(State.Success)
             _data.value = resultsFromApi
-        }.collect()
+            insertTracks(value, resultsFromApi.results)
+        }
     }
 
     private suspend fun updateDataWithSql(value: String) {
-        trackDao.getTracksByRequest(value).map { list ->
-            list.map { searchItem ->
-                Track(
-                    searchItem.trackId,
-                    searchItem.artistName,
-                    searchItem.collectionName,
-                    searchItem.trackName,
-                    searchItem.artworkUrl60
-                )
-            }.toMutableList()
-        }.collect {
-            if (_data.value.results.isEmpty()) {
-                _data.value = Results((it))
+        trackDao.getTracksByRequest(value).also { list ->
+            if (list.isEmpty()) {
+                _state.value = ApiState(State.Error)
+            } else {
+                _data.value = Results(list.map { it.toTrack() })
+                _state.value = ApiState(State.Success)
             }
         }
     }
 
     private suspend fun insertTracks(request: String, tracks: List<Track>) {
-        withContext(Dispatchers.IO) {
-            val searchList = tracks.map {
-                SearchEntity(
-                    0,
-                    request,
-                    it.trackId,
-                    it.artistName,
-                    it.collectionName,
-                    it.trackName,
-                    it.artworkUrl60
-                )
-            }
-            trackDao.insertTrack(searchList)
-        }
+        trackDao.insertTrack(tracks.map { it.toSearchEntity(request) })
     }
 }
