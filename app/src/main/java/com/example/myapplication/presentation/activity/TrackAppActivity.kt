@@ -9,8 +9,10 @@ class TrackAppActivity : AppCompatActivity(R.layout.app_activity) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, TrackFragment())
-            .commit()
+        if (supportFragmentManager.findFragmentById(R.id.fragment_container)?.isAdded != true) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, TrackFragment())
+                .commit()
+        }
     }
 }

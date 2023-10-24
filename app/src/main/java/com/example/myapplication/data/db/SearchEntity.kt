@@ -1,14 +1,12 @@
 package com.example.myapplication.data.db
 
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "tracks")
-class SearchEntity(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo("id") val id: Long,
+data class SearchEntity(
+    @PrimaryKey(autoGenerate = true) @ColumnInfo("id") val id: Long,
     @ColumnInfo("request") val request: String,
     @ColumnInfo("trackId") val trackId: Int,
     @ColumnInfo("artistName") val artistName: String,

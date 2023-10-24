@@ -1,12 +1,11 @@
-package com.example.myapplication.di
+package com.example.myapplication.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.myapplication.data.api.TrackRepositoryApi
-import com.example.myapplication.presentation.viewmodel.TrackViewModel
+import javax.inject.Inject
 
-class TrackViewModelFactory(
-
+class TrackViewModelFactory @Inject constructor(
     val repository: TrackRepositoryApi
 ) : ViewModelProvider.Factory {
 
