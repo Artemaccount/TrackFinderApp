@@ -13,4 +13,5 @@ data class SearchEntity(
     @ColumnInfo("collectionName") val collectionName: String?,
     @ColumnInfo("trackName") val trackName: String,
     @ColumnInfo("artworkUrl60") val artworkUrl60: String,
+    @ColumnInfo("artworkUrl100") val artworkUrl100: String,
 )

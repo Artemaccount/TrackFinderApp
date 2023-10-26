@@ -1,7 +1,8 @@
 package com.example.myapplication.data.mapper
 
-import com.example.myapplication.data.api.Track
+import com.example.myapplication.data.api.model.Track
 import com.example.myapplication.data.db.SearchEntity
+import com.example.myapplication.data.mapper.MapperObject.toTrack
 
 object MapperObject {
     fun SearchEntity.toTrack(): Track = Track(
@@ -9,7 +10,8 @@ object MapperObject {
         this.artistName,
         this.collectionName,
         this.trackName,
-        this.artworkUrl60
+        this.artworkUrl60,
+        this.artworkUrl100
     )
 
     fun Track.toSearchEntity(request: String): SearchEntity = SearchEntity(
@@ -19,6 +21,7 @@ object MapperObject {
         this.artistName,
         this.collectionName,
         this.trackName,
-        this.artworkUrl60
+        this.artworkUrl60,
+        this.artworkUrl100
     )
 }

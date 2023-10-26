@@ -1,4 +1,4 @@
-package com.example.myapplication.data.api
+package com.example.myapplication.data.api.model
 
 data class Track(
     val trackId: Int,
@@ -6,4 +6,5 @@ data class Track(
     val collectionName: String?,
     val trackName: String,
     val artworkUrl60: String,
+    val artworkUrl100: String,
 )
