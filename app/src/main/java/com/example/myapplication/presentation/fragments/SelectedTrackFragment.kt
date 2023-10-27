@@ -1,24 +1,20 @@
 package com.example.myapplication.presentation.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
 import com.example.myapplication.R
 import com.example.myapplication.data.api.model.Track
 import com.example.myapplication.databinding.SelectedTrackFragmentBinding
-import com.example.myapplication.di.DaggerAppComponent
-import com.example.myapplication.presentation.fragments.TrackListFragment.Companion.TRACK_ID_KEY
 import com.example.myapplication.presentation.viewmodel.TrackViewModel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,6 +22,12 @@ class SelectedTrackFragment : Fragment() {
 
     @Inject
     lateinit var glide: RequestManager
+
+    @Inject
+    lateinit var router: Router
+
+    private val trackId: Int
+        get() = requireArguments().getInt(TRACK_ID)
 
     private val binding by lazy { SelectedTrackFragmentBinding.inflate(layoutInflater) }
 
@@ -40,18 +42,13 @@ class SelectedTrackFragment : Fragment() {
     ): View {
         this.getAppComponent().inject(this)
 
-
-        val trackId = this.arguments?.getInt(TRACK_ID_KEY)
-
-        trackId?.let {
-            lifecycleScope.launch {
-                val track = trackViewModel.getTrackByTrackId(it)
-                if (track.trackId != -1) bindTrack(track)
-            }
+        lifecycleScope.launch {
+            val track = trackViewModel.getTrackByTrackId(trackId)
+            bindTrack(track)
         }
 
         binding.backButton.setOnClickListener {
-            activity?.supportFragmentManager?.popBackStack()
+            router.backTo(Screens.trackList())
         }
 
         return binding.root
@@ -81,4 +78,12 @@ class SelectedTrackFragment : Fragment() {
     }
 
 
+    companion object {
+        private const val TRACK_ID = "track_id"
+        fun getNewInstance(trackId: Int): SelectedTrackFragment {
+            return SelectedTrackFragment().apply {
+                arguments = bundleOf(TRACK_ID to trackId)
+            }
+        }
+    }
 }

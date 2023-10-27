@@ -3,17 +3,12 @@ package com.example.myapplication.presentation.fragments
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.example.myapplication.R
 import com.example.myapplication.application.TrackFinderApplication
 import com.example.myapplication.data.api.DataState
 import com.example.myapplication.data.api.Loading
@@ -26,8 +21,10 @@ import com.example.myapplication.presentation.adapter.OnInteractionListener
 import com.example.myapplication.presentation.adapter.TracksAdapter
 import com.example.myapplication.presentation.viewmodel.TrackViewModel
 import com.example.myapplication.utils.KeyboardUtils.hideKeyboard
+import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import javax.inject.Inject
 
 class TrackListFragment : Fragment() {
 
@@ -35,21 +32,16 @@ class TrackListFragment : Fragment() {
         getAppComponent().viewModelsFactory()
     }
 
+    @Inject
+    lateinit var router: Router
+
     private val binding by lazy { TrackListFragmentBinding.inflate(layoutInflater) }
+
 
     private val adapter by lazy {
         TracksAdapter(getAppComponent(), object : OnInteractionListener {
             override fun select(track: Track) {
-                val selectedTrackFragment = SelectedTrackFragment()
-                selectedTrackFragment.arguments = bundleOf(TRACK_ID_KEY to track.trackId)
-
-                activity?.let {
-                    it.supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, selectedTrackFragment)
-                        .addToBackStack(null)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .commit()
-                }
+                router.navigateTo(Screens.selectedTrack(track.trackId))
             }
         })
     }
@@ -105,10 +97,6 @@ class TrackListFragment : Fragment() {
                 }
             }
         }
-    }
-
-    companion object {
-        const val TRACK_ID_KEY = "track_id"
     }
 }
 
