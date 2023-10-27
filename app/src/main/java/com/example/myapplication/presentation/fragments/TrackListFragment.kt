@@ -60,6 +60,7 @@ class TrackListFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
+                binding.trackRecyclerView.visibility = View.GONE
                 s?.let {
                     trackViewModel.input.value = it.toString()
                 }
