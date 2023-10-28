@@ -1,5 +1,6 @@
 package com.example.myapplication.data.api
 
+import com.example.myapplication.data.api.model.Results
 import retrofit2.http.GET
 import retrofit2.http.Query
 

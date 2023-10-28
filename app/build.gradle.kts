@@ -61,6 +61,10 @@ dependencies {
 //    // To use Kotlin annotation processing tool (kapt)
     kapt("androidx.room:room-compiler:$room_version")
 
+    // https://mvnrepository.com/artifact/com.github.terrakok/cicerone
+    implementation("com.github.terrakok:cicerone:7.1")
+
+
 // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-livedata-ktx
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 

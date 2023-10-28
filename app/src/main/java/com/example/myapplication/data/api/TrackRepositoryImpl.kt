@@ -1,25 +1,22 @@
 package com.example.myapplication.data.api
 
-import com.example.myapplication.data.exceptions.NoValueFoundException
+import com.example.myapplication.data.api.model.Results
+import com.example.myapplication.data.api.model.Track
 import com.example.myapplication.data.db.TrackDao
+import com.example.myapplication.data.exceptions.NoValueFoundException
 import com.example.myapplication.data.mapper.MapperObject.toSearchEntity
 import com.example.myapplication.data.mapper.MapperObject.toTrack
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-class TrackRepositoryApi @Inject constructor(
+class TrackRepositoryImpl @Inject constructor(
     private val trackDao: TrackDao,
     private val apiService: ItunesApi
 ) : TrackRepository {
-    private val _state = MutableStateFlow(ApiState())
-    override val state: StateFlow<ApiState>
-        get() = _state.asStateFlow()
 
-    private var _data = MutableStateFlow(Results(listOf()))
-    override val data: StateFlow<Results>
-        get() = _data.asStateFlow()
+    private val _data: MutableStateFlow<DataState<Results>> =
+        MutableStateFlow(Result.Success(Results(emptyList())))
+    override val data get() = _data
 
     override suspend fun getTracks(value: String) {
         try {
@@ -30,14 +27,18 @@ class TrackRepositoryApi @Inject constructor(
         }
     }
 
+
+    override suspend fun getTrackById(trackId: Int): Track {
+        return trackDao.getTrackById(trackId).toTrack()
+    }
+
     private suspend fun updateDataWithApi(value: String) {
-        _state.value = ApiState(State.Loading)
+        _data.value = Loading
         val resultsFromApi = apiService.getTrack(value)
         if (resultsFromApi.results.isEmpty()) {
             throw NoValueFoundException("no data found by api")
         } else {
-            _state.value = ApiState(State.Success)
-            _data.value = resultsFromApi
+            _data.value = Result.Success(resultsFromApi)
             insertTracks(value, resultsFromApi.results)
         }
     }
@@ -45,10 +46,13 @@ class TrackRepositoryApi @Inject constructor(
     private suspend fun updateDataWithSql(value: String) {
         trackDao.getTracksByRequest(value).also { list ->
             if (list.isEmpty()) {
-                _state.value = ApiState(State.Error)
+                data.value = Result.Error(NoValueFoundException("no data found by sql"))
             } else {
-                _data.value = Results(list.map { it.toTrack() })
-                _state.value = ApiState(State.Success)
+                list.map {
+                    it.toTrack()
+                }.also {
+                    _data.value = Result.Success(Results(it))
+                }
             }
         }
     }
