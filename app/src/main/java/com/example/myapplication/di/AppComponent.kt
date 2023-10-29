@@ -8,7 +8,6 @@ import com.example.myapplication.data.api.ItunesApi
 import com.example.myapplication.data.db.AppDb
 import com.example.myapplication.data.db.TrackDao
 import com.example.myapplication.presentation.activity.TrackAppActivity
-import com.example.myapplication.presentation.adapter.TracksAdapter
 import com.example.myapplication.presentation.fragments.SelectedTrackFragment
 import com.example.myapplication.presentation.fragments.TrackListFragment
 import com.example.myapplication.presentation.viewmodel.TrackViewModelFactory
@@ -23,14 +22,19 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Component
-    (modules = [DbModule::class, NetworkModule::class, CiceroneModule::class])
+    (
+    modules = [
+        DbModule::class,
+        NetworkModule::class,
+        CiceroneModule::class
+    ]
+)
 @Singleton
 interface AppComponent {
     fun inject(fragment: TrackListFragment)
     fun inject(fragment: SelectedTrackFragment)
-    fun inject(vh: TracksAdapter.TrackViewHolder)
     fun inject(activity: TrackAppActivity)
-    fun viewModelsFactory(): TrackViewModelFactory
+    fun viewModelFactory(): TrackViewModelFactory
 }
 
 

@@ -8,7 +8,6 @@ import com.example.myapplication.data.api.model.Track
 
 @Dao
 interface TrackDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrack(searchEntity: SearchEntity)
 
