@@ -1,8 +1,9 @@
-package com.example.myapplication.data.api
+package com.example.myapplication.data.api.model
 
 sealed class DataState<out T>
 
 data object Loading : DataState<Nothing>()
+data object NoDataFound : DataState<Nothing>()
 
 sealed class Result<out T> : DataState<T>() {
 

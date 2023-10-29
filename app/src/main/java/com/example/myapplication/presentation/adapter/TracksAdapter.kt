@@ -20,7 +20,7 @@ interface OnInteractionListener {
 }
 
 class TracksAdapter(
-    private val appComponent: AppComponent,
+    private val glide: RequestManager,
     private val onInteractionListener: OnInteractionListener,
 ) :
     ListAdapter<Track, TracksAdapter.TrackViewHolder>(TrackDiffCallback()) {
@@ -42,12 +42,6 @@ class TracksAdapter(
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
-        init {
-            appComponent.inject(this)
-        }
-
-        @Inject
-        lateinit var glide: RequestManager
 
         private val options by lazy {
             RequestOptions()

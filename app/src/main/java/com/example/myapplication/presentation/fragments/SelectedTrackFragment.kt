@@ -13,7 +13,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.myapplication.R
 import com.example.myapplication.data.api.model.Track
 import com.example.myapplication.databinding.SelectedTrackFragmentBinding
-import com.example.myapplication.presentation.viewmodel.TrackViewModel
+import com.example.myapplication.presentation.intents.TrackListIntent
+import com.example.myapplication.presentation.viewmodel.SelectedTrackViewModel
 import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,8 +32,8 @@ class SelectedTrackFragment : Fragment() {
 
     private val binding by lazy { SelectedTrackFragmentBinding.inflate(layoutInflater) }
 
-    private val trackViewModel: TrackViewModel by viewModels {
-        getAppComponent().viewModelsFactory()
+    private val selectedTrackViewModel: SelectedTrackViewModel by viewModels {
+        getAppComponent().viewModelFactory()
     }
 
     override fun onCreateView(
@@ -42,9 +43,15 @@ class SelectedTrackFragment : Fragment() {
     ): View {
         this.getAppComponent().inject(this)
 
+
         lifecycleScope.launch {
-            val track = trackViewModel.getTrackByTrackId(trackId)
-            bindTrack(track)
+            selectedTrackViewModel.userIntent.send(TrackListIntent.GetTrackInfo(trackId))
+        }
+
+        lifecycleScope.launch {
+            selectedTrackViewModel.state.collect {
+                bindTrack(it)
+            }
         }
 
         binding.backButton.setOnClickListener {
@@ -67,7 +74,6 @@ class SelectedTrackFragment : Fragment() {
                 .apply(options)
                 .into(image100)
         }
-
     }
 
     private val options by lazy {
